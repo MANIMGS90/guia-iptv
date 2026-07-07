@@ -1,0 +1,46 @@
+name: Actualizar Guia EPG
+
+on:
+  schedule:
+    - cron: '0 */12 * * *'   # se ejecuta solo cada 12 horas
+  workflow_dispatch:          # tambien podras correrlo a mano con un boton
+
+permissions:
+  contents: write
+
+jobs:
+  actualizar-guia:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar mi repositorio
+        uses: actions/checkout@v4
+        with:
+          path: mi-repo
+
+      - name: Clonar el motor iptv-org/epg
+        uses: actions/checkout@v4
+        with:
+          repository: iptv-org/epg
+          path: epg
+
+      - name: Instalar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Instalar dependencias
+        working-directory: epg
+        run: npm install
+
+      - name: Generar guide.xml con mi lista de canales
+        working-directory: epg
+        run: npm run grab -- --channels=../mi-repo/mis_canales_channels.xml --output=../mi-repo/guide.xml --days=3 --maxConnections=5
+
+      - name: Subir guide.xml actualizada
+        working-directory: mi-repo
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add guide.xml
+          git commit -m "Actualizar guia EPG" || echo "Sin cambios que subir"
+          git push
