@@ -32,9 +32,13 @@ jobs:
         working-directory: epg
         run: npm install
 
-      - name: Generar guide.xml con mi lista de canales
+      - name: Generar guide.xml con mi lista de canales reales
         working-directory: epg
         run: npm run grab -- --channels=../mi-repo/mis_canales_channels.xml --output=../mi-repo/guide.xml --days=3 --maxConnections=5
+
+      - name: Fusionar con los canales genericos/loop (horario propio)
+        working-directory: mi-repo
+        run: python3 merge_guide.py guide.xml mani_extra_epg.xml guide.xml
 
       - name: Subir guide.xml actualizada
         working-directory: mi-repo
@@ -42,5 +46,5 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add guide.xml
-          git commit -m "Actualizar guia EPG" || echo "Sin cambios que subir"
+          git commit -m "Actualizar guia EPG (202 canales)" || echo "Sin cambios que subir"
           git push
